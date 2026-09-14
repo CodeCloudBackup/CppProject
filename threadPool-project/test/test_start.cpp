@@ -12,7 +12,7 @@ public:
         std::cout << "MyTask is running" << std::endl;
         std::cout << "tid: " << std::this_thread::get_id() << std::endl;
         std::this_thread::sleep_for(std::chrono::seconds(5));
-        return ;
+        return "";
     }
 };
 
@@ -21,7 +21,7 @@ public:
     MyTask1(const int begin, const int end) : begin_(begin), end_(end) {}
     ~MyTask1() = default;
     AnyType run() override {
-        int sum = 0;
+        unsigned long sum = 0;
         for (int i = begin_; i < end_; ++i) {
             sum += i;
         }
@@ -43,9 +43,10 @@ int main()
     for (int i = 0; i < 4; ++i) {
         pool.submitTask(std::make_shared<MyTask>());
     }
-    pool.submitTask(std::make_shared<MyTask1>(0, 1000));
-    for (int i = 0; i < 4; ++i) {
-        pool.submitTask(std::make_shared<MyTask1>(i * 1000 + 1, (i + 1) * 1000));
-    }
+    ResultType res1 = pool.submitTask(std::make_shared<MyTask1>(0, 1000000));
+    ResultType res2 = pool.submitTask(std::make_shared<MyTask1>(1000001, 2000000));
+    ResultType res3 = pool.submitTask(std::make_shared<MyTask1>(2000001, 3000000));
+    unsigned long sum = res1.GetResult().GetData<long>() + res2.GetResult().GetData<long>() + res3.GetResult().GetData<long>();
+    std::cout << "sum: " << sum << std::endl;
     getchar();
 }

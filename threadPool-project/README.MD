@@ -7,6 +7,10 @@
 ```
 
 ### VScode编译命令
+    清理cmake缓存
+    del CMakeCache.txt
+    cmd /c "rmdir /s /q CMakeFiles" 
+    编译
     cmake .. -G "MinGW Makefiles"
     mingw32-make
     $env:PATH = "e:\docker\rpc-system\src\CppProject\threadPool-project\lib;" + $env:PATH

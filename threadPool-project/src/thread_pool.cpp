@@ -24,22 +24,27 @@ void ThreadPool::setTaskSizeThreshold(int threshold)
     taskSizeThreshold_ = threshold;
 }
 
-void ThreadPool::submitTask(std::shared_ptr<Task> task)
+// 给线程池提交任务
+ResultType ThreadPool::submitTask(std::shared_ptr<Task> task)
 {
+    // 获取锁
     std::unique_lock<std::mutex> lock(tasksMutex_);
-    if (tasksQue_.size() >= taskSizeThreshold_) {
-        tasksNotFullCV_.wait(lock);
-    }
-    // wait wait_for wait_until
+    // 等待任务队列有空闲位置
+    // 用户指定等待时间，最长时间不能阻塞1s，否者判断任务提交失败
     if(!tasksNotFullCV_.wait_for(lock, std::chrono::seconds(1), 
-        [&]()->bool { return tasksQue_.size() < taskSizeThreshold_; })) {
-        
+        [&]()->bool { return tasksQue_.size() < (size_t)taskSizeThreshold_; }))
+    {
         std::cerr << "Task queue is full, submit task timeout" << std::endl;
+        return ResultType(task, false);
     }
-    tasksQue_.push(task);
+    // 将任务放入任务队列
+    tasksQue_.emplace(task);
     taskSize_++;
 
+    // 通知等待的任务可以开始工作了
     tasksNotEmptyCV_.notify_all();
+    // 返回任务提交结果
+    return ResultType(task);
 }
 
 void ThreadPool::start(int initThreadSize) 
@@ -63,16 +68,21 @@ void ThreadPool::threadFunc()
         std::shared_ptr<Task> task;
         {
             std::unique_lock<std::mutex> lock(tasksMutex_);
+            std::cout << "tid:" << std::this_thread::get_id() << 
+                "try get task" << std::endl;
             tasksNotEmptyCV_.wait(lock, [&]()->bool { return tasksQue_.size() > 0; });
+            std::cout << "tid:" << std::this_thread::get_id() << 
+                "get a task" << std::endl;
             task = tasksQue_.front();
             tasksQue_.pop();
             taskSize_--;
             if (tasksQue_.size() > 0)
                 tasksNotFullCV_.notify_all();
+            tasksNotFullCV_.notify_all();
         }
         if (task != nullptr) {
             task->run();
-
+            
         }
     }
 }
@@ -81,32 +91,10 @@ void ThreadPool::stop()
 {
 }
 
-// 线程方法实现
-Thread::~Thread()
-{
-    if (thread_ && thread_->joinable()) {
-        thread_->join();
-    }
-}
 
 void Thread::start() 
 {   
-    thread_ = std::make_unique<std::thread>(func_);
+    std::thread t(func_);
+    t.detach();
 }
-
-void Thread::join()
-{
-    if (thread_ && thread_->joinable()) {
-        thread_->join();
-    }
-}
-
-std::thread::id Thread::getThreadId() const
-{
-    if (thread_) {
-        return thread_->get_id();
-    }
-    return std::thread::id();
-}
-
 
