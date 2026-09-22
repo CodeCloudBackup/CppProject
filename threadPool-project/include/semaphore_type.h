@@ -12,16 +12,20 @@ public:
     // 获取一个信号量
     void wait(){
         std::unique_lock<std::mutex> lock(mutex_);
-        cond_.wait(lock, [&]()->bool{ return count_ > 0; });
-        count_--;
+        --count_;
+        if (count_ < 0) {
+            cond_.wait(lock);
+        }
     }
     // 释放一个信号量
     void post() {
         std::unique_lock<std::mutex> lock(mutex_);
-        count_++;
-        cond_.notify_all();
+        ++count_;
+        if( count_ <= 0) cond_.notify_one();
     }
     void notify();
+    SemaphoreType(const SemaphoreType&) = delete;
+    SemaphoreType& operator=(const SemaphoreType&) = delete;
 private:
     int count_;
     std::mutex mutex_;

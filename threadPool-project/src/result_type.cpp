@@ -1,4 +1,5 @@
 #include "result_type.h"
+#include <iostream>
 
 ResultType::ResultType(std::shared_ptr<Task> task, bool isValid)
     : task_(task), isValid_(isValid)
@@ -7,11 +8,13 @@ ResultType::ResultType(std::shared_ptr<Task> task, bool isValid)
 }
 
 void ResultType::ReceiveResult(AnyType result) {
+    std::cout << "Receiving result" << std::endl;
     this->result_ = std::move(result);
     semaphore_.post();
 }
 
 AnyType ResultType::GetResult() {
+    std::cout << "Getting result" << std::endl;
     if (!isValid_) {
         return "Invalid result";    
     } 
