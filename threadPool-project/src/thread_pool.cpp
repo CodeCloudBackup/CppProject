@@ -21,8 +21,8 @@ const int THREAD_MAX_IDLE_TIME = 60;
 ThreadPool::~ThreadPool()
 {
     isPoolRunning_ = false;
-    tasksNotEmptyCV_.notify_all();
     std::unique_lock<std::mutex> lock(tasksMutex_);
+    tasksNotEmptyCV_.notify_all();
     exitCodeCV_.wait(lock, [&]()->bool { return tasksQue_.size() == 0; });
 }
 
