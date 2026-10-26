@@ -16,20 +16,22 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 message(STATUS "INCLUDE_DIRECTORIES: ${PROJECT_SOURCE_DIR}/include")
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
+
 # 添加库文件路径
-link_directories(${PROJECT_SOURCE_DIR}/lib)
+#link_directories(${PROJECT_SOURCE_DIR}/lib)
+
+#set(SRC_LIST
+#    ${PROJECT_SOURCE_DIR}/src/thread_pool.cpp
+#    ${PROJECT_SOURCE_DIR}/src/result_type.cpp
+#)
+
+#add_library(threadPool SHARED ${SRC_LIST})
+
+#target_link_libraries(threadPool pthread)
+
 
 set(SRC_LIST
-    ${PROJECT_SOURCE_DIR}/src/thread_pool.cpp
-    ${PROJECT_SOURCE_DIR}/src/result_type.cpp
-)
-add_library(threadPool SHARED ${SRC_LIST})
-
-target_link_libraries(threadPool pthread)
-
-
-set(SRC_LIST
-    ${PROJECT_SOURCE_DIR}/test/test_start.cpp
+    ${PROJECT_SOURCE_DIR}/test/test_2.cpp
 )
 add_executable(threadPool_test ${SRC_LIST})
-target_link_libraries(threadPool_test threadPool pthread)
+target_link_libraries(threadPool_test pthread)
